@@ -1,6 +1,11 @@
 import { Chat } from "@/components/Chat";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
+import { db } from "@/firebase";
+import {
+  collection,
+  addDoc,
+} from "firebase/firestore";
 
 export default function Home() {
   /*
@@ -21,13 +26,14 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
   // 메시지를 전송 중인지 여부를 저장하는 상태
   const [loading, setLoading] = useState(false);
-
+  const chatCollection = collection(db,"chats");
   const messagesEndRef = useRef(null);
 
   // 메시지 목록을 끝으로 스크롤
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
 
   // 메시지를 전송하는 함수
   const handleSend = async (message) => {
@@ -72,6 +78,16 @@ export default function Home() {
     // 로딩 상태를 해제하고, 메시지 목록에 응답을 추가
     setLoading(false);
     setMessages((messages) => [...messages, result]);
+
+    try {
+      // Firestore에 메시지 저장
+      
+      const docRef = await addDoc(chatCollection, {
+        text: messages,
+      });
+    } catch (error) {
+      console.error("Error adding message to Firestore: ", error);
+    }
   };
 
   // 메시지 목록을 초기화하는 함수
@@ -80,7 +96,7 @@ export default function Home() {
     setMessages([
       {
         role: "assistant",
-        content: "안녕? 나는 엘리엇이야. 오늘은 무슨 일이 있었니?",
+        content: "안녕하세요? 이번주는 어떠셨나요?",
       },
     ]);
   };
@@ -98,7 +114,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>A Simple Chatbot</title>
+        <title>AI 상담사 잭슨</title>
         <meta name="description" content="A Simple Chatbot" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -111,7 +127,7 @@ export default function Home() {
               className="ml-2 hover:opacity-50"
               href="https://code-scaffold.vercel.app"
             >
-              A Simple Chatbot
+              AI 상담사 잭슨
             </a>
           </div>
         </div>
